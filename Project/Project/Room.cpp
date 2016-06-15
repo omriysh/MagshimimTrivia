@@ -17,7 +17,6 @@ bool Room::joinRoom(User* user)
 		for (it; it != _users.end(); it++)
 		{
 			(**it).send(to_string(ROOM_USERS_RESPONSE) + getUsersListMessage());
-			cout << (**it).getUsername() << " " << to_string(ROOM_USERS_RESPONSE) + getUsersListMessage() << endl;
 		}
 		return true;
 	}
@@ -28,6 +27,12 @@ bool Room::joinRoom(User* user)
 void Room::leaveRoom(User* user)
 {
     _users.erase(remove(_users.begin(), _users.end(), user),_users.end());
+	vector<User*>::iterator it = _users.begin();
+	for (it; it != _users.end(); it++)
+	{
+		(**it).send(to_string(ROOM_USERS_RESPONSE) + getUsersListMessage());
+		cout << (**it).getUsername() << " " << to_string(ROOM_USERS_RESPONSE) + getUsersListMessage() << endl;
+	}
 }
 
 int Room::closeRoom(User* user)

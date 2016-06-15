@@ -126,6 +126,16 @@ void TriviaServer::addRecievedMessage(RecievedMessage* m)
 {
 	std::unique_lock<std::mutex> locker(_mtxRecievedMessages);
 	locker.try_lock();
+	cout << "RECIEVING:: " << m->getMessageCode();
+	for (vector<string>::iterator it = m->getValues()->begin(); it != m->getValues()->end(); it++)
+	{
+		cout << " " << it->c_str();
+	}
+	if (m->getUser())
+	{
+		cout << " - User: " << m->getUser()->getUsername();
+	}
+	cout << endl;
 	_queRcvMessages.push(m);	
 	locker.unlock();
 	_cond.notify_all();
