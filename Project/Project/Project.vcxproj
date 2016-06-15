@@ -79,6 +79,7 @@
   <ItemGroup>
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Question.cpp" />
     <ClCompile Include="RecievedMessage.cpp" />
     <ClCompile Include="Room.cpp" />
     <ClCompile Include="sqlite3.c" />
