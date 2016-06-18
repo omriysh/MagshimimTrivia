@@ -112,11 +112,13 @@ bool Game::leaveGame(User* u)
 int Game::getID()
 {
 	//DATABASE STUFF
+	return 1;
 }
 
 bool Game::insertGameToDB()
 {
 	//DATABASE STUFF
+	return true;
 }
 
 void Game::initQuestionsFromDB()

@@ -189,6 +189,8 @@ RecievedMessage* TriviaServer::buildRecieveMessage(SOCKET s, int code)
 		values.push_back(Helper::getStringPartFromSocket(s, 1));
 		values.push_back(Helper::getStringPartFromSocket(s, 2));
 		break;
+	case GAME_START:
+		break;
 	}
 
 	RecievedMessage* m;
@@ -251,6 +253,9 @@ void TriviaServer::handleRecievedMessages()
 		case ANSWER:
 			handlePlayerAnswer(_queRcvMessages.front());
 			break;
+		case GAME_START:
+			handleStartGame(_queRcvMessages.front());
+
 		}
 		delete _queRcvMessages.front();
 		_queRcvMessages.pop();
@@ -487,7 +492,17 @@ void TriviaServer::handleLeaveGame(RecievedMessage* m)
 
 void TriviaServer::handleStartGame(RecievedMessage* m)
 {
-
+	Game *g;
+	DataBase *db = nullptr;
+	try
+	{
+		g = new Game(m->getUser()->getRoom()->getUsers(), m->getUser()->getRoom()->getQuestionsNo(), *db);
+		g->sendFirstQuestion();
+	}
+	catch (...)
+	{
+		m->getUser()->send(to_string(GAME_FAIL));
+	}
 }
 
 void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
