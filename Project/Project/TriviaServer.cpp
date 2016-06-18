@@ -183,6 +183,12 @@ RecievedMessage* TriviaServer::buildRecieveMessage(SOCKET s, int code)
 		break;
 	case EXIT_APPLICATION:
 		break;
+	case GAME_LEAVE:
+		break;
+	case ANSWER:
+		values.push_back(Helper::getStringPartFromSocket(s, 1));
+		values.push_back(Helper::getStringPartFromSocket(s, 2));
+		break;
 	}
 
 	RecievedMessage* m;
@@ -237,6 +243,12 @@ void TriviaServer::handleRecievedMessages()
 			break;
 		case EXIT_APPLICATION:
 			safeDeleteUser(_queRcvMessages.front());
+			break;
+		case GAME_LEAVE:
+			handleLeaveGame(_queRcvMessages.front());
+			break;
+		case ANSWER:
+			handlePlayerAnswer(_queRcvMessages.front());
 			break;
 		}
 		delete _queRcvMessages.front();
@@ -460,4 +472,31 @@ void TriviaServer::handleGetUsersInRoom(RecievedMessage* m)
 	Room* room = getRoomById(roomID);
 	if (!room) Helper::sendData(m->getSock(), to_string(ROOM_USERS_RESPONSE) + "0");
 	else Helper::sendData(m->getSock(), to_string(ROOM_USERS_RESPONSE) + room->getUsersListMessage());
+}
+
+void TriviaServer::handleLeaveGame(RecievedMessage* m)
+{
+	Game* g = m->getUser()->getGame();
+	if (!m->getUser()->leaveGame())
+	{
+		delete g;
+	}
+	Helper::sendData(m->getSock(),to_string(GAME_LEAVE));
+}
+
+void TriviaServer::handleStartGame(RecievedMessage* m)
+{
+
+}
+
+void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
+{
+	Game* g = m->getUser()->getGame();
+	if (g)
+	{
+		if (!(g->handleAnswerFromUser(m->getUser(), stoi((*(m->getValues()))[0]), stoi((*(m->getValues()))[1]))))
+		{
+			delete g;
+		}
+	}
 }
