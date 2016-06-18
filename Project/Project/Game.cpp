@@ -25,11 +25,13 @@ Game::~Game()
 	for (it; it != _questions.end(); it++)
 	{
 		delete *it;
+		_questions.erase(it);
 	}
 	vector<User*>::iterator it2 = _players.begin();
 	for (it2; it2 != _players.end(); it2++)
 	{
 		delete *it2;
+		_players.erase(it2);
 	}
 }
 
@@ -82,7 +84,7 @@ bool Game::handleNextTurn()
 bool Game::handleAnswerFromUser(User* user, int answerNo, int time)
 {
 	_currentTurnAnswers++;
-	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex() + 1)
+	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex())
 	{
 		_results[user->getUsername()]++;
 		//DATABASE STUFF
