@@ -519,8 +519,12 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 
 			delete m->getUser()->getRoom();
 			delete g;
+<<<<<<< HEAD
 			m->getUser()->setGame(NULL);
 			m->getUser()->setRoom(NULL);
+=======
+			m->getUser()->closeRoom();
+>>>>>>> parent of bac3484... Revert "Fixes"
 		}
 	}
 }

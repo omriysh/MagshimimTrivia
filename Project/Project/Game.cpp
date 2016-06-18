@@ -82,7 +82,7 @@ bool Game::handleNextTurn()
 bool Game::handleAnswerFromUser(User* user, int answerNo, int time)
 {
 	_currentTurnAnswers++;
-	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex())
+	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex() + 1)
 	{
 		_results[user->getUsername()]++;
 		//DATABASE STUFF
