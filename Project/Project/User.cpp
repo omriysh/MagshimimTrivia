@@ -37,6 +37,12 @@ void User::setGame(Game* game)
     _currGame = game;
 }
 
+void User::setRoom(Room* room)
+{
+	_currRoom = room;
+}
+
+
 void User::clearRoom()
 {
     _currRoom = nullptr;
