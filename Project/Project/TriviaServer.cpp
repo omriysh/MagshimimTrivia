@@ -126,6 +126,16 @@ void TriviaServer::addRecievedMessage(RecievedMessage* m)
 {
 	std::unique_lock<std::mutex> locker(_mtxRecievedMessages);
 	locker.try_lock();
+	cout << "RECIEVING:: " << m->getMessageCode();
+	for (vector<string>::iterator it = m->getValues()->begin(); it != m->getValues()->end(); it++)
+	{
+		cout << " " << it->c_str();
+	}
+	if (m->getUser())
+	{
+		cout << " - User: " << m->getUser()->getUsername();
+	}
+	cout << endl;
 	_queRcvMessages.push(m);	
 	locker.unlock();
 	_cond.notify_all();
@@ -172,6 +182,12 @@ RecievedMessage* TriviaServer::buildRecieveMessage(SOCKET s, int code)
 	case ROOM_CLOSE_REQUEST:
 		break;
 	case EXIT_APPLICATION:
+		break;
+	case GAME_LEAVE:
+		break;
+	case ANSWER:
+		values.push_back(Helper::getStringPartFromSocket(s, 1));
+		values.push_back(Helper::getStringPartFromSocket(s, 2));
 		break;
 	}
 
@@ -227,6 +243,12 @@ void TriviaServer::handleRecievedMessages()
 			break;
 		case EXIT_APPLICATION:
 			safeDeleteUser(_queRcvMessages.front());
+			break;
+		case GAME_LEAVE:
+			handleLeaveGame(_queRcvMessages.front());
+			break;
+		case ANSWER:
+			handlePlayerAnswer(_queRcvMessages.front());
 			break;
 		}
 		delete _queRcvMessages.front();
@@ -450,4 +472,31 @@ void TriviaServer::handleGetUsersInRoom(RecievedMessage* m)
 	Room* room = getRoomById(roomID);
 	if (!room) Helper::sendData(m->getSock(), to_string(ROOM_USERS_RESPONSE) + "0");
 	else Helper::sendData(m->getSock(), to_string(ROOM_USERS_RESPONSE) + room->getUsersListMessage());
+}
+
+void TriviaServer::handleLeaveGame(RecievedMessage* m)
+{
+	Game* g = m->getUser()->getGame();
+	if (!m->getUser()->leaveGame())
+	{
+		delete g;
+	}
+	Helper::sendData(m->getSock(),to_string(GAME_LEAVE));
+}
+
+void TriviaServer::handleStartGame(RecievedMessage* m)
+{
+
+}
+
+void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
+{
+	Game* g = m->getUser()->getGame();
+	if (g)
+	{
+		if (!(g->handleAnswerFromUser(m->getUser(), stoi((*(m->getValues()))[0]), stoi((*(m->getValues()))[1]))))
+		{
+			delete g;
+		}
+	}
 }
