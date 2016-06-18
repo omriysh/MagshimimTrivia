@@ -25,13 +25,11 @@ Game::~Game()
 	for (it; it != _questions.end(); it++)
 	{
 		delete *it;
-		_questions.erase(it);
 	}
 	vector<User*>::iterator it2 = _players.begin();
 	for (it2; it2 != _players.end(); it2++)
 	{
 		delete *it2;
-		_players.erase(it2);
 	}
 }
 
