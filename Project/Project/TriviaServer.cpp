@@ -513,6 +513,7 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 		if (!(g->handleAnswerFromUser(m->getUser(), stoi((*(m->getValues()))[0]), stoi((*(m->getValues()))[1]))))
 		{
 			delete g;
+			m->getUser()->closeRoom();
 		}
 	}
 }
