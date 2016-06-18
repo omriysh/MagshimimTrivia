@@ -5,6 +5,12 @@
 Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo)/*, _db(db)*/
 {
 	//DATABASE STUFF
+	Question* q1 = new Question(1, "Who is Yael Haziz?", "All the answers", "Naor's mom", "Eilat's beauty queen", "Gil Haziz's wife");
+	Question* q2 = new Question(1, "So far so...?", "good", "bad", "magnificent", "fantastic");
+	Question* q3 = new Question(1, "How old is Omer Adam?", "16", "17", "7 8 9", "Random(age)");
+	_questions.push_back(q1);
+	_questions.push_back(q2);
+	_questions.push_back(q3);
 	vector<User*>::iterator it = _players.begin();
 	for (it; it != _players.end(); it++)
 	{
