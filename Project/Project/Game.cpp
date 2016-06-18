@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "Protocol.h"
 
-Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo)/*, _db(db)*/
+Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo - 1)/*, db(db)*/, _currentTurnAnswers(0)
 {
 	//DATABASE STUFF
 	Question* q1 = new Question(1, "Who is Yael Haziz?", "All the answers", "Naor's mom", "Eilat's beauty queen", "Gil Haziz's wife");
@@ -25,13 +25,11 @@ Game::~Game()
 	for (it; it != _questions.end(); it++)
 	{
 		delete *it;
-		_questions.erase(it);
 	}
 	vector<User*>::iterator it2 = _players.begin();
 	for (it2; it2 != _players.end(); it2++)
 	{
 		delete *it2;
-		_players.erase(it2);
 	}
 }
 
@@ -69,12 +67,13 @@ bool Game::handleNextTurn()
 	}
 	if (_currentTurnAnswers == _players.size())
 	{
-		if (_questions_no == _questions.size())
+		if (_questions_no == 0)
 		{
 			handleFinishGame();
 			return false;
 		}
-		_questions_no++;
+		_questions_no--;
+		_currentTurnAnswers = 0;
 		sendQuestionToAllUsers();
 	}
 	return true;
@@ -83,7 +82,7 @@ bool Game::handleNextTurn()
 bool Game::handleAnswerFromUser(User* user, int answerNo, int time)
 {
 	_currentTurnAnswers++;
-	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex())
+	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex() + 1)
 	{
 		_results[user->getUsername()]++;
 		//DATABASE STUFF

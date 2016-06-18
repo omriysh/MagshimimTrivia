@@ -497,10 +497,21 @@ void TriviaServer::handleStartGame(RecievedMessage* m)
 	try
 	{
 		g = new Game(m->getUser()->getRoom()->getUsers(), m->getUser()->getRoom()->getQuestionsNo(), *db);
+		
+		map<int, Room*>::iterator it = _roomsList.begin();
+		for (it; it != _roomsList.end(); it++)
+		{
+			if (it->second == m->getUser()->getRoom()) break;
+		}
+		_roomsList.erase(it);
+
+		delete m->getUser()->getRoom();
+
 		g->sendFirstQuestion();
 	}
 	catch (...)
 	{
+		std::cout << "\nPOOP IN THE GAME!!!\n";
 		m->getUser()->send(to_string(GAME_FAIL));
 	}
 }
