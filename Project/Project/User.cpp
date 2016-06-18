@@ -84,11 +84,11 @@ int User::closeRoom()
 	_currRoom = nullptr;
     return roomNum;
 }
-
+/*
 bool User::leaveGame()
 {
-	Game* g = _currGame;
     if (!_currGame) return false;
+    _currGame->(this);
     _currGame = nullptr;
-	return g->leaveGame(this);
-}
+    return true;
+}*/

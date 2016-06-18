@@ -26,7 +26,7 @@ class User
         bool joinRoom(Room* room);
         void leaveRoom();
         int closeRoom();
-        bool leaveGame();
+       // bool leaveGame();
     private:
         string _username;
         Room* _currRoom;

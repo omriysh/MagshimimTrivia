@@ -27,7 +27,7 @@ private:
 	map<int, Room*> _roomsList;
 
 	map<string, string> _dbUsers;
-	
+
 	std::condition_variable _cond;
 	mutex _mtxRecievedMessages;
 	queue<RecievedMessage*> _queRcvMessages;
