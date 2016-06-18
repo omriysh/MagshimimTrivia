@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "Protocol.h"
 
-Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo)/*, _db(db)*/
+Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo - 1)/*, _db(db)*/, _currentTurnAnswers(0)
 {
 	//DATABASE STUFF
 	Question* q1 = new Question(1, "Who is Yael Haziz?", "All the answers", "Naor's mom", "Eilat's beauty queen", "Gil Haziz's wife");
@@ -69,12 +69,13 @@ bool Game::handleNextTurn()
 	}
 	if (_currentTurnAnswers == _players.size())
 	{
-		if (_questions_no == _questions.size())
+		if (_questions_no == 0)
 		{
 			handleFinishGame();
 			return false;
 		}
-		_questions_no++;
+		_questions_no--;
+		_currentTurnAnswers = 0;
 		sendQuestionToAllUsers();
 	}
 	return true;
