@@ -30,9 +30,16 @@ class Game{
     ~Game();
     void sendFirstQuestion();
     void handleFinishGame();
+<<<<<<< HEAD
 	bool handleNextTurn();
 	bool handleAnswerFromUser(User* user, int answerNo, int time);
 	bool leaveGame(User* u);
     int getID();
 	
+=======
+    bool handleNextTurn();
+    bool handleAnswerFromUser(User* user, int answerNo, int time);
+    bool leaveGame(User* u);
+    int getID();
+>>>>>>> origin/master
 };

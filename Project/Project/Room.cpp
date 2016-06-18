@@ -31,7 +31,10 @@ void Room::leaveRoom(User* user)
 	for (it; it != _users.end(); it++)
 	{
 		(**it).send(to_string(ROOM_USERS_RESPONSE) + getUsersListMessage());
+<<<<<<< HEAD
 		cout << (**it).getUsername() << " " << to_string(ROOM_USERS_RESPONSE) + getUsersListMessage() << endl;
+=======
+>>>>>>> origin/master
 	}
 }
 
