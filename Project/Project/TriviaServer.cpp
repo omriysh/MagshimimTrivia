@@ -205,6 +205,7 @@ RecievedMessage* TriviaServer::buildRecieveMessage(SOCKET s, int code)
 	m->setUser(getUserBySocket(s));
 	return m;
 }
+
 void TriviaServer::handleRecievedMessages()
 {
 	std::unique_lock<std::mutex> locker(_mtxRecievedMessages);
@@ -386,6 +387,7 @@ bool TriviaServer::handleCreateRoom(RecievedMessage* m)
 		return false;
 	}
 }
+
 bool TriviaServer::handleCloseRoom(RecievedMessage* m)
 {
 	User* user = m->getUser();
@@ -468,7 +470,6 @@ User* TriviaServer::getUserBySocket(SOCKET s)
 		return nullptr;
 	}
 }
-
 
 void TriviaServer::handleGetUsersInRoom(RecievedMessage* m)
 {
