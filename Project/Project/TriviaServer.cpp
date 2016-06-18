@@ -110,6 +110,7 @@ void TriviaServer::safeDeleteUser(RecievedMessage* m)
 {
 	try
 	{
+
 		SOCKET soc = m->getSock();
 		handleSignout(m);
 		if (soc != NULL)
@@ -130,7 +131,10 @@ void TriviaServer::addRecievedMessage(RecievedMessage* m)
 	{
 		cout << " " << it->c_str();
 	}
-
+	if (m->getUser())
+	{
+		cout << " - User: " << m->getUser()->getUsername();
+	}
 	cout << endl;
 	_queRcvMessages.push(m);	
 	locker.unlock();
@@ -493,6 +497,15 @@ void TriviaServer::handleStartGame(RecievedMessage* m)
 	try
 	{
 		g = new Game(m->getUser()->getRoom()->getUsers(), m->getUser()->getRoom()->getQuestionsNo(), *db);
+		
+		map<int, Room*>::iterator it = _roomsList.begin();
+		for (it; it != _roomsList.end(); it++)
+		{
+			if (it->second == m->getUser()->getRoom()) break;
+		}
+		_roomsList.erase(it);
+
+		delete m->getUser()->getRoom();
 
 		g->sendFirstQuestion();
 	}
@@ -510,17 +523,7 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 	{
 		if (!(g->handleAnswerFromUser(m->getUser(), stoi((*(m->getValues()))[0]), stoi((*(m->getValues()))[1]))))
 		{
-			map<int, Room*>::iterator it = _roomsList.begin();
-			for (it; it != _roomsList.end(); it++)
-			{
-				if (it->second == m->getUser()->getRoom()) break;
-			}
-			_roomsList.erase(it);
-
-			delete m->getUser()->getRoom();
 			delete g;
-			m->getUser()->setGame(NULL);
-			m->getUser()->setRoom(NULL);
 		}
 	}
 }
