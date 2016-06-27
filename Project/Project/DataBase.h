@@ -25,4 +25,4 @@ class DataBase
         static int callbackQuestions(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackBestScores(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackPersonalStatus(void* notUsed, int argc, char** argv, char** azCol);
-}; */
+};*/

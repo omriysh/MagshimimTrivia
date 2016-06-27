@@ -21,13 +21,12 @@ class User
         Room* getRoom();
         Game* getGame();
         void setGame(Game* game);
-		void setRoom(Room* room);
         void clearRoom();
         bool createRoom(int id, User* _admin, string name,int maxUsers, int questionTime, int questionNo);
         bool joinRoom(Room* room);
         void leaveRoom();
         int closeRoom();
-        bool leaveGame();
+       // bool leaveGame();
     private:
         string _username;
         Room* _currRoom;

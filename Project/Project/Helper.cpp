@@ -1,7 +1,6 @@
 #include "Helper.h"
 
 #include <string>
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 
@@ -26,14 +25,15 @@ int Helper::getMessageTypeCode(SOCKET sc)
 
 
 
+
+
+
 // send data to socket
 // this is private function
 void Helper::sendData(SOCKET sc, std::string message) 
 {
 	const char* data = message.c_str();
 	
-	cout << "SENDING:: " << data << endl;
-
 	if (send(sc, data, message.size(), 0) == INVALID_SOCKET)
 	{
 		throw std::exception("Error while sending message to client");

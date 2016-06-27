@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <vector>
 #include <map>
@@ -30,8 +30,8 @@ class Game{
     ~Game();
     void sendFirstQuestion();
     void handleFinishGame();
-    bool handleNextTurn();
-    bool handleAnswerFromUser(User* user, int answerNo, int time);
+    void handleNextTurn();
+    bool handleAnswerFromUser(User* u, int curr, int no);
     bool leaveGame(User* u);
     int getID();
-};
+};*/
