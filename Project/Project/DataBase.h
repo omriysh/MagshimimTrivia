@@ -1,15 +1,17 @@
-/*#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
+#include <exception>
 #include "Question.h"
+#include "sqlite3.h"
 
 using namespace std;
 
 class DataBase
 {
     public:
-        DataBase();
+        DataBase() throw(string);
         ~DataBase();
         bool isUserExists(string username);
         bool addNewUser(string username, string password, string email);
@@ -21,8 +23,11 @@ class DataBase
         bool updateGameStatus(int id);
         bool addAnswerToPlayer(int gameId, string username, int questionId, string answer, bool isCorrect, int answerTime);
     private:
+		sqlite3* _db;
+		static int _lastValue;
+
         static int callbackCount(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackQuestions(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackBestScores(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackPersonalStatus(void* notUsed, int argc, char** argv, char** azCol);
-};*/
+};
