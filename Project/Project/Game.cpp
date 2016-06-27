@@ -26,11 +26,7 @@ Game::~Game()
 	{
 		delete *it;
 	}
-	vector<User*>::iterator it2 = _players.begin();
-	for (it2; it2 != _players.end(); it2++)
-	{
-		delete *it2;
-	}
+
 }
 
 void Game::sendFirstQuestion()

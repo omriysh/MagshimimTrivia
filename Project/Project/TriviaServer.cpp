@@ -10,7 +10,7 @@ using namespace std;
 
 int TriviaServer::_roomIdSequence;
 
-TriviaServer::TriviaServer() 
+TriviaServer::TriviaServer() throw(exception)
 {
 	_roomIdSequence = 0;
 	_socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -59,7 +59,7 @@ void TriviaServer::server()
 	}
 }
 
-void TriviaServer::bindAndListen()
+void TriviaServer::bindAndListen() throw(exception)
 {
 	struct sockaddr_in sa = { 0 };
 	sa.sin_port = htons(PORT);
@@ -74,7 +74,7 @@ void TriviaServer::bindAndListen()
 	cout << "listening..." << endl;
 }
 
-void TriviaServer::accept()
+void TriviaServer::accept() throw(exception)
 {
 	SOCKET client_socket = ::accept(_socket, NULL, NULL);
 	if (client_socket == INVALID_SOCKET)
@@ -253,6 +253,7 @@ void TriviaServer::handleRecievedMessages()
 			handleStartGame(_queRcvMessages.front());
 
 		}
+
 		delete _queRcvMessages.front();
 		_queRcvMessages.pop();
 	}
@@ -357,7 +358,6 @@ void TriviaServer::handleSignout(RecievedMessage* m)
 			if (it->first == u->getSocket())
 			{
 				delete it->second;
-				closesocket(it->first);
 				_connectedUsers.erase(it);
 				break;
 			}
