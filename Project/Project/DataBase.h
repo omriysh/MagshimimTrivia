@@ -1,11 +1,13 @@
-/*#pragma once
+#pragma once
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "Question.h"
 
 using namespace std;
 
+class Question;
 class DataBase
 {
     public:
@@ -25,4 +27,4 @@ class DataBase
         static int callbackQuestions(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackBestScores(void* notUsed, int argc, char** argv, char** azCol);
         static int callbackPersonalStatus(void* notUsed, int argc, char** argv, char** azCol);
-}; */
+}; 

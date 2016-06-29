@@ -2,15 +2,11 @@
 #include "Game.h"
 #include "Protocol.h"
 
-Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo - 1)/*, db(db)*/, _currentTurnAnswers(0)
+Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo - 1), _db(&db), _currentTurnAnswers(0)
 {
-	//DATABASE STUFF
-	Question* q1 = new Question(1, "Who is Yael Haziz?", "All the answers", "Naor's mom", "Eilat's beauty queen", "Gil Haziz's wife");
-	Question* q2 = new Question(1, "So far so...?", "good", "bad", "magnificent", "fantastic");
-	Question* q3 = new Question(1, "How old is Omer Adam?", "16", "17", "7 8 9", "Random(age)");
-	_questions.push_back(q1);
-	_questions.push_back(q2);
-	_questions.push_back(q3);
+	////////////	
+	insertGameToDB();
+	initQuestionsFromDB();
 	vector<User*>::iterator it = _players.begin();
 	for (it; it != _players.end(); it++)
 	{
@@ -36,7 +32,7 @@ void Game::sendFirstQuestion()
 
 void Game::handleFinishGame()
 {
-	//DATABASE STUFF
+	////////////////
 	stringstream s;
 	vector<User*>::iterator it = _players.begin();
 	for (it = _players.begin(); it != _players.end(); it++)
@@ -52,6 +48,8 @@ void Game::handleFinishGame()
 		catch (...) {}
 		(**it).setGame(nullptr);
 	}
+	_db->updateGameStatus(getID());
+
 }
 
 bool Game::handleNextTurn()
@@ -81,11 +79,13 @@ bool Game::handleAnswerFromUser(User* user, int answerNo, int time)
 	if (answerNo == _questions[_questions_no]->getCorrectAnswerIndex() + 1)
 	{
 		_results[user->getUsername()]++;
-		//DATABASE STUFF
+		/////////////////
+		_db->addAnswerToPlayer(getID(), user->getUsername(), _questions[_questions_no]->getId(), _questions[_questions_no]->getAnswer()[answerNo-1],true,time);
 		user->send(to_string(ANSWER_INDICATION) + "1");
 		return handleNextTurn();
 	}
-	//DATABASE STUFF
+	/////////////////
+	_db->addAnswerToPlayer(getID(), user->getUsername(), _questions[_questions_no]->getId(), _questions[_questions_no]->getAnswer()[answerNo - 1], false, time);
 	user->send(to_string(ANSWER_INDICATION) + "0");
 	return handleNextTurn();
 }
@@ -106,19 +106,17 @@ bool Game::leaveGame(User* u)
 
 int Game::getID()
 {
-	//DATABASE STUFF
-	return 1;
+	return _players[0]->getRoom()->getId();
 }
 
 bool Game::insertGameToDB()
 {
-	//DATABASE STUFF
-	return true;
+	return 	_db->insertNewGame();
 }
 
 void Game::initQuestionsFromDB()
 {
-	//DATABASE STUFF
+	_questions = _db->initQuestion(_questions_no);
 }
 
 void Game::sendQuestionToAllUsers()
