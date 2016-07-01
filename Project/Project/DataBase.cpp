@@ -110,7 +110,7 @@ vector<string> DataBase::getBestScores()
 		}
 		else
 		{
-			ans.push_back("0");
+			ans.push_back("00");
 		}
 	}
 	return ans;
