@@ -4,6 +4,7 @@
 int DataBase::_lastValue = 0;
 vector<int> DataBase::_ids;
 string DataBase::_questionData = "";
+vector<string> DataBase::_userNames;
 
 DataBase::DataBase() throw(string)
 {
@@ -85,7 +86,34 @@ vector<string> DataBase::getBestScores()
 {
 	//return 3 scores or empty strings
 	vector<string> ans;
-
+	char* zErrMsg = 0;
+	string sheilta = "select username from t_users;";
+	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackBestScores, 0, &zErrMsg);
+	if (rc != SQLITE_OK) return ans;
+	map<string, int> scores;
+	for (int i = 0; i < _userNames.size(); i--)
+	{
+		vector<string> status = getPersonalStatus(_userNames[i]);
+		scores.insert(pair<string, int>(_userNames[i], stoi(status[1])));
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		map<string, int>::iterator it = scores.begin();
+		if (it != scores.end())
+		{
+			pair<string, int> max = *it;
+			for (it++; it != scores.end(); it++)
+			{
+				if (it->second > max.second) max = *it;
+			}
+			ans.push_back(Helper::getPaddedNumber(max.first.size(), 2) + max.first + Helper::getPaddedNumber(max.second, 6));
+		}
+		else
+		{
+			ans.push_back("0");
+		}
+	}
+	return ans;
 }
 
 vector<string> DataBase::getPersonalStatus(string username)
@@ -180,7 +208,12 @@ int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azC
 
 int DataBase::callbackBestScores(void* notUsed, int argc, char** argv, char** azCol)
 {
-
+	while (_userNames.size()) _userNames.erase(_userNames.end());
+	for (int i = 0; i < argc; i++)
+	{
+		_userNames.push_back(argv[i]);
+	}
+	return 0;
 }
 
 int DataBase::callbackPersonalStatus(void* notUsed, int argc, char** argv, char** azCol)
