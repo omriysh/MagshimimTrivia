@@ -2,6 +2,9 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iostream>
+#include "Protocol.h"
 #include "User.h"
 #include "Helper.h"
 

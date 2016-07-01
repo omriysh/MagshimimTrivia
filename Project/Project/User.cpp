@@ -37,6 +37,12 @@ void User::setGame(Game* game)
     _currGame = game;
 }
 
+void User::setRoom(Room* room)
+{
+	_currRoom = room;
+}
+
+
 void User::clearRoom()
 {
     _currRoom = nullptr;
@@ -60,7 +66,11 @@ bool User::createRoom(int id, User* _admin, string name,int maxUsers, int questi
 
 bool User::joinRoom(Room* room)
 {
-    if (_currRoom == nullptr) _currRoom = room;
+	if (_currRoom == nullptr)
+	{
+		_currRoom = room;
+		room->joinRoom(this);
+	}
     else return false;
     return true;
 }
@@ -77,13 +87,14 @@ int User::closeRoom()
     _currRoom->Room::closeRoom(this);
     int roomNum = _currRoom->getId();
     delete _currRoom;
+	_currRoom = nullptr;
     return roomNum;
 }
-/*
+
 bool User::leaveGame()
 {
+	Game* g = _currGame;
     if (!_currGame) return false;
-    _currGame->(this);
     _currGame = nullptr;
-    return true;
-}*/
+	return g->leaveGame(this);
+}

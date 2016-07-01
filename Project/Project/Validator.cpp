@@ -12,8 +12,8 @@ bool Validator::isPasswordValid(string password)
 
 bool Validator::isUsernameValid(string username)
 {
-	if ((username[0] <= 122 && username[0] >= 97) || (username[0] <= 90 && username[0] >= 65)) return false;
-    if (username.find(" ") != string::npos) return false;
-    if (username.length() == 0) return false;
-    return true;
+	if (!(username[0] <= 122 && username[0] >= 97) && !(username[0] <= 90 && username[0] >= 65)) return false;
+	if (username.find(" ") != string::npos) return false;
+	if (username.length() == 0) return false;
+	return true;
 }

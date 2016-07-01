@@ -5,7 +5,8 @@
 #include <string>
 #include "User.h"
 #include "DataBase.h"
-
+#include <random>
+#include <algorithm>
 using namespace std;
 
 class Question{
