@@ -10,13 +10,12 @@ using namespace std;
 
 int TriviaServer::_roomIdSequence;
 
-TriviaServer::TriviaServer() 
+TriviaServer::TriviaServer() throw(exception)
 {
 	_roomIdSequence = 0;
 	_socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_socket == INVALID_SOCKET)
 		throw std::exception(__FUNCTION__ " - socket"); 
-	/*DataBase Build*/
 }
 
 TriviaServer::~TriviaServer()
@@ -59,7 +58,7 @@ void TriviaServer::server()
 	}
 }
 
-void TriviaServer::bindAndListen()
+void TriviaServer::bindAndListen() throw(exception)
 {
 	struct sockaddr_in sa = { 0 };
 	sa.sin_port = htons(PORT);
@@ -74,7 +73,7 @@ void TriviaServer::bindAndListen()
 	cout << "listening..." << endl;
 }
 
-void TriviaServer::accept()
+void TriviaServer::accept() throw(exception)
 {
 	SOCKET client_socket = ::accept(_socket, NULL, NULL);
 	if (client_socket == INVALID_SOCKET)
@@ -251,8 +250,15 @@ void TriviaServer::handleRecievedMessages()
 			break;
 		case GAME_START:
 			handleStartGame(_queRcvMessages.front());
-
+			break;
+		case BEST_SCORES_REQUEST:
+			handleGetBestScores(_queRcvMessages.front());
+			break;
+		case PERSONAL_STATUS_REQUEST:
+			handleGetPersonalStatus(_queRcvMessages.front());
+			break;
 		}
+
 		delete _queRcvMessages.front();
 		_queRcvMessages.pop();
 	}
@@ -264,19 +270,17 @@ User* TriviaServer::handleSignin(RecievedMessage* m)
 	map<string, string>::iterator it;
 	map<SOCKET,User*>::iterator itConnected;
 	User* login = nullptr;
-	for (it = _dbUsers.begin(); it != _dbUsers.end(); it++)
+
+	if (_db.isUserAndPassMatch(((*(m->getValues()))[0]), ((*(m->getValues()))[1])))
 	{
-		if ((it->first) == ((*(m->getValues()))[0]) && (it->second) == ((*(m->getValues()))[1]))
+		flag = false;
+		login = new User(it->first, m->getSock());
+		for (itConnected = _connectedUsers.begin(); itConnected != _connectedUsers.end(); itConnected++)
 		{
-			flag = false;
-			login = new User(it->first, m->getSock());
-			for (itConnected = _connectedUsers.begin(); itConnected != _connectedUsers.end(); itConnected++)
+			if (itConnected->second->getUsername() == login->getUsername())
 			{
-				if (itConnected->second->getUsername() == login->getUsername())
-				{
-					delete login;
-					login = nullptr;
-				}
+				delete login;
+				login = nullptr;
 			}
 		}
 	}
@@ -316,7 +320,7 @@ bool TriviaServer::handleSignup(RecievedMessage* m)
 		return false;
 	}
 	//////////////////// TEMP CODE
-	map<string, string>::iterator it = _dbUsers.begin();
+	/*map<string, string>::iterator it = _dbUsers.begin();
 	for (it; it != _dbUsers.end(); it++)
 	{
 		if (user == it->first)
@@ -325,20 +329,20 @@ bool TriviaServer::handleSignup(RecievedMessage* m)
 			return false;
 		}
 	}
-	_dbUsers.insert(pair<string, string>(user, pass));
+	_dbUsers.insert(pair<string, string>(user, pass));*/
 	//////////////////// END TEMP CODE
 	//////////////////// FUTURE CODE:
-	/*if (!DataBase::isUserExists(user))
+	if (_db.isUserExists(user))
 	{
 	Helper::sendData(m->getSock(), to_string(SIGN_UP_USERNAME_EXISTS));
 	return false;
 	}
-	if(!DataBase::addNewUser(user, pass, email))
+	if(!_db.addNewUser(user, pass, email))
 	{
 	Helper::sendData(m->getSock(), to_string(SIGN_UP_OTHER));
 	return false;
 	}
-	*/
+	
 	Helper::sendData(m->getSock(), to_string(SIGN_UP_SUCCESS));
 	return true;
 }
@@ -357,7 +361,6 @@ void TriviaServer::handleSignout(RecievedMessage* m)
 			if (it->first == u->getSocket())
 			{
 				delete it->second;
-				closesocket(it->first);
 				_connectedUsers.erase(it);
 				break;
 			}
@@ -522,5 +525,40 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 			m->getUser()->setGame(NULL);
 			m->getUser()->setRoom(NULL);
 		}
+	}
+}
+
+void TriviaServer::handleGetBestScores(RecievedMessage* m)
+{
+	vector<string> scores;
+	string ret;
+	scores = _db.getBestScores();
+	ret = BEST_SCORES_RESPOND;
+	for (int i = 0; i != 3; i++)
+	{
+		if (scores[i].size())
+		{
+			ret += Helper::getPaddedNumber(scores[i].size(), 2);
+			ret += scores[i];
+			ret += Helper::getPaddedNumber(stoi(_db.getPersonalStatus(scores[i])[1]), 6);
+		}
+		else
+		{
+			ret += "0000000";
+		}
+	}
+	Helper::sendData(m->getSock(), ret);
+}
+
+void TriviaServer::handleGetPersonalStatus(RecievedMessage* m)
+{
+	vector<string> data = _db.getPersonalStatus(m->getUser()->getUsername());
+	if (data[0] == "0000")
+	{
+		Helper::sendData(m->getSock(), PERSONAL_STATUS_RESPONSE + "0000");
+	}
+	else
+	{
+		Helper::sendData(m->getSock(), to_string(PERSONAL_STATUS_RESPONSE) + data[0] + data[1] + data[2] + data[3]);
 	}
 }

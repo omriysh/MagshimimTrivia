@@ -8,10 +8,11 @@
 
 using namespace std;
 
+class Question;
 class DataBase
 {
 public:
-	DataBase() throw(string);
+	DataBase();
 	~DataBase();
 	bool isUserExists(string username);
 	bool addNewUser(string username, string password, string email);
@@ -28,7 +29,6 @@ private:
 	static vector<int> _ids;
 	static string _questionData;
 	static vector<string> _userNames;
-
 	static int callbackCount(void* notUsed, int argc, char** argv, char** azCol);
 	static int callbackId(void* notUsed, int argc, char** argv, char** azCol);
 	static int callbackQuestions(void* notUsed, int argc, char** argv, char** azCol);

@@ -15,6 +15,24 @@ DataBase::DataBase() throw(string)
 		sqlite3_close(_db);
 		throw error;
 	}
+	else
+	{
+		
+		char* zErrMsg = 0;
+		string sheilta = "create table if not exists t_players_answers(game_id integer not null, username text not null, question_id integer not null, player_answer text not null, is_correct integer not null, answer_time integer not null, primary key(game_id, username, question_id));";
+		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		sheilta = "create table if not exists t_users(username text primary key not null, password text not null, email text not null, foreign key(username) references t_players_answers(username));";
+		int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		sheilta = "create table if not exists t_games(game_id integer primary key autoincrement not null, status integer not null, start_time datetime not null, end_time datetime, foreign key(game_id) references t_players_answers(game_id));";
+		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		sheilta = "create table if not exists t_questions(question_id integer primary key autoincrement not null, question text not null, correct_ans text not null, ans2 text not null, ans3 text not null, ans4 text not null, foreign key(question_id) references t_players_answers(question_id));";
+		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		
+	}
 }
 
 DataBase::~DataBase()
@@ -35,7 +53,7 @@ bool DataBase::isUserExists(string username)
 bool DataBase::addNewUser(string username, string password, string email)
 {
 	char* zErrMsg = 0;
-	string sheilta = "inser into t_users(username, password, email) values(" + username + ", " + password + ", " + email + ");";
+	string sheilta = "insert into t_users(username, password, email) values(" + username + ", " + password + ", " + email + ");";
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return false;
 	return true;
@@ -65,7 +83,7 @@ vector<Question*> DataBase::initQuestion(int questionNo)
 		if (rc != SQLITE_OK) return ans;
 		string question = _questionData;
 		sheilta = "select correct_ans from t_questions where question_id=" + to_string(_ids[i]) + ";";
-		int rc = sqlite3_exec(_db, sheilta.c_str(), callbackQuestions, 0, &zErrMsg);
+		rc = sqlite3_exec(_db, sheilta.c_str(), callbackQuestions, 0, &zErrMsg);
 		if (rc != SQLITE_OK) return ans;
 		string correctAns = _questionData;
 		vector<string> answers;
@@ -127,16 +145,16 @@ vector<string> DataBase::getPersonalStatus(string username)
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
 	ans.push_back(Helper::getPaddedNumber(_lastValue, 4));
-	string sheilta = "select count(*) from t_players_answers where is_correct=1 and username=" + username + ";";
-	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+	sheilta = "select count(*) from t_players_answers where is_correct=1 and username=" + username + ";";
+	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
 	ans.push_back(Helper::getPaddedNumber(_lastValue, 6));
-	string sheilta = "select count(*) from t_players_answers where is_correct=0 and username=" + username + ";";
-	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+	sheilta = "select count(*) from t_players_answers where is_correct=0 and username=" + username + ";";
+	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
 	ans.push_back(Helper::getPaddedNumber(_lastValue, 6));
-	string sheilta = "select answer_time from t_players_value where username=" + username + ";";
-	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackPersonalStatus, 0, &zErrMsg);
+	sheilta = "select answer_time from t_players_value where username=" + username + ";";
+	rc = sqlite3_exec(_db, sheilta.c_str(), callbackPersonalStatus, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
 	ans.push_back(Helper::getPaddedNumber(_lastValue, 4));
 	return ans;
@@ -148,8 +166,8 @@ int DataBase::insertNewGame()
 	string sheilta = "insert into t_games(status, start_time) valeus(0, now);";
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return -1;
-	string sheilta = "select count(*) from t_games;";
-	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+	sheilta = "select count(*) from t_games;";
+	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return -1;
 	return _lastValue;
 }
@@ -227,4 +245,5 @@ int DataBase::callbackPersonalStatus(void* notUsed, int argc, char** argv, char*
 	}
 	sum /= argc;
 	_lastValue = (int)sum * 100 + sum - (int)sum;
+	return 0;
 }

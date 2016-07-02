@@ -23,10 +23,8 @@ public:
 private:
 	SOCKET _socket;
 	map<SOCKET, User*> _connectedUsers;
-	//DataBase _db;
+	DataBase _db;
 	map<int, Room*> _roomsList;
-
-	map<string, string> _dbUsers;
 	
 	std::condition_variable _cond;
 	mutex _mtxRecievedMessages;
@@ -55,7 +53,7 @@ private:
 	void handleGetRooms(RecievedMessage* m);
 
 	void handleGetBestScores(RecievedMessage* m);
-	void handleGetPersomaStatus(RecievedMessage* m);
+	void handleGetPersonalStatus(RecievedMessage* m);
 
 	void handleRecievedMessages();
 	void addRecievedMessage(RecievedMessage* m);
