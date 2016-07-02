@@ -29,6 +29,8 @@ private:
 	static vector<int> _ids;
 	static string _questionData;
 	static vector<string> _userNames;
+
+	void insertQuestions();
 	static int callbackCount(void* notUsed, int argc, char** argv, char** azCol);
 	static int callbackId(void* notUsed, int argc, char** argv, char** azCol);
 	static int callbackQuestions(void* notUsed, int argc, char** argv, char** azCol);
