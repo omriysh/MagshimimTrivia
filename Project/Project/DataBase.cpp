@@ -73,6 +73,7 @@ vector<Question*> DataBase::initQuestion(int questionNo)
 	vector<Question*> ans;
 	char* zErrMsg = 0;
 	string sheilta = "select question_id from t_questions order by random() limit " + to_string(questionNo) + ";";
+	_ids.clear();
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackId, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
 	for (int i = 0; i < _ids.size(); i++)
@@ -105,10 +106,11 @@ vector<string> DataBase::getBestScores()
 	vector<string> ans;
 	char* zErrMsg = 0;
 	string sheilta = "select username from t_users;";
+	_userNames.clear();
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackBestScores, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
 	map<string, int> scores;
-	for (int i = 0; i < _userNames.size(); i--)
+	for (int i = 0; i < _userNames.size(); i++)
 	{
 		vector<string> status = getPersonalStatus(_userNames[i]);
 		scores.insert(pair<string, int>(_userNames[i], stoi(status[1])));
@@ -124,10 +126,11 @@ vector<string> DataBase::getBestScores()
 				if (it->second > max.second) max = *it;
 			}
 			ans.push_back(Helper::getPaddedNumber(max.first.size(), 2) + max.first + Helper::getPaddedNumber(max.second, 6));
+			scores.erase(max.first);
 		}
 		else
 		{
-			ans.push_back("00");
+			ans.push_back("");
 		}
 	}
 	return ans;
@@ -183,7 +186,7 @@ bool DataBase::updateGameStatus(int id)
 bool DataBase::addAnswerToPlayer(int gameId, string username, int questionId, string answer, bool isCorrect, int answerTime)
 {
 	char* zErrMsg = 0;
-	string sheilta = "isert into t_players_answers(game_id, username, question_id, player_answer, is_correct, answer_time) values(" + to_string(gameId) + ", \"" + username + "\", " + to_string(questionId) + ", \"" + answer + "\", " + (isCorrect ? "true" : "false") + ", " + to_string(answerTime) + ");";
+	string sheilta = "insert into t_players_answers(game_id, username, question_id, player_answer, is_correct, answer_time) values(" + to_string(gameId) + ", \"" + username + "\", " + to_string(questionId) + ", \"" + answer + "\", " + (isCorrect ? "1" : "0") + ", " + to_string(answerTime) + ");";
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return false;
 	return true;
@@ -226,7 +229,7 @@ int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)
 
 int DataBase::callbackId(void* notUsed, int argc, char** argv, char** azCol)
 {
-	//while (_ids.size()) _ids.erase(_ids.end());
+	//_ids.clear();
 	for (int i = 0; i < argc; i++)
 	{
 		_ids.push_back(stoi(argv[i]));
@@ -246,7 +249,7 @@ int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azC
 
 int DataBase::callbackBestScores(void* notUsed, int argc, char** argv, char** azCol)
 {
-	while (_userNames.size()) _userNames.erase(_userNames.end());
+	//_userNames.clear();
 	for (int i = 0; i < argc; i++)
 	{
 		_userNames.push_back(argv[i]);

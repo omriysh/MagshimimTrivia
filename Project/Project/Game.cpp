@@ -116,7 +116,12 @@ bool Game::insertGameToDB()
 
 void Game::initQuestionsFromDB()
 {
-	_questions = _db->initQuestion(_questions_no);
+	vector<Question*> temp = _db->initQuestion(_questions_no + 1);
+	vector<Question*>::iterator it = temp.begin();
+	for (it; it != temp.end(); it++)
+	{
+		_questions.push_back(*it);
+	}
 }
 
 void Game::sendQuestionToAllUsers()

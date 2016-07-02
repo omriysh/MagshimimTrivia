@@ -509,6 +509,7 @@ void TriviaServer::handleStartGame(RecievedMessage* m)
 void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 {
 	Game* g = m->getUser()->getGame();
+	Room* r = m->getUser()->getRoom();
 	if (g)
 	{
 		if (!(g->handleAnswerFromUser(m->getUser(), stoi((*(m->getValues()))[0]), stoi((*(m->getValues()))[1]))))
@@ -519,6 +520,13 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 				if (it->second == m->getUser()->getRoom()) break;
 			}
 			_roomsList.erase(it);
+
+			vector<User*> users = r->getUsers();
+			vector<User*>::iterator itU = users.begin();
+			for (itU; itU != users.end(); itU++)
+			{
+				(*itU)->setRoom(nullptr);
+			}
 
 			delete m->getUser()->getRoom();
 			delete g;
@@ -533,14 +541,12 @@ void TriviaServer::handleGetBestScores(RecievedMessage* m)
 	vector<string> scores;
 	string ret;
 	scores = _db.getBestScores();
-	ret = BEST_SCORES_RESPOND;
+	ret = to_string(BEST_SCORES_RESPOND);
 	for (int i = 0; i != 3; i++)
 	{
 		if (scores[i].size())
 		{
-			ret += Helper::getPaddedNumber(scores[i].size(), 2);
 			ret += scores[i];
-			ret += Helper::getPaddedNumber(stoi(_db.getPersonalStatus(scores[i])[1]), 6);
 		}
 		else
 		{
@@ -553,12 +559,5 @@ void TriviaServer::handleGetBestScores(RecievedMessage* m)
 void TriviaServer::handleGetPersonalStatus(RecievedMessage* m)
 {
 	vector<string> data = _db.getPersonalStatus(m->getUser()->getUsername());
-	if (data[0] == "0000")
-	{
-		Helper::sendData(m->getSock(), to_string(PERSONAL_STATUS_RESPONSE) + "0000");
-	}
-	else
-	{
-		Helper::sendData(m->getSock(), to_string(PERSONAL_STATUS_RESPONSE) + data[0] + data[1] + data[2] + data[3]);
-	}
+	Helper::sendData(m->getSock(), to_string(PERSONAL_STATUS_RESPONSE) + data[0] + data[1] + data[2] + data[3]);
 }
