@@ -328,11 +328,11 @@ bool TriviaServer::handleSignup(RecievedMessage* m)
 			Helper::sendData(m->getSock(), to_string(SIGN_UP_USERNAME_EXISTS));
 			return false;
 		}
-	}*/
-	_dbUsers.insert(pair<string, string>(user, pass));
+	}
+	_dbUsers.insert(pair<string, string>(user, pass));*/
 	//////////////////// END TEMP CODE
 	//////////////////// FUTURE CODE:
-	if (!_db.isUserExists(user))
+	if (_db.isUserExists(user))
 	{
 	Helper::sendData(m->getSock(), to_string(SIGN_UP_USERNAME_EXISTS));
 	return false;

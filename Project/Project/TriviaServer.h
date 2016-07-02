@@ -25,8 +25,6 @@ private:
 	map<SOCKET, User*> _connectedUsers;
 	DataBase _db;
 	map<int, Room*> _roomsList;
-
-	map<string, string> _dbUsers;
 	
 	std::condition_variable _cond;
 	mutex _mtxRecievedMessages;
