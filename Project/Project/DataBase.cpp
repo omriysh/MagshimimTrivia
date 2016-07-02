@@ -136,6 +136,7 @@ vector<string> DataBase::getBestScores()
 	return ans;
 }
 
+
 vector<string> DataBase::getPersonalStatus(string username)
 {
 	//number of games (4), number of right answers (6)
@@ -229,7 +230,6 @@ int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)
 
 int DataBase::callbackId(void* notUsed, int argc, char** argv, char** azCol)
 {
-	//_ids.clear();
 	for (int i = 0; i < argc; i++)
 	{
 		_ids.push_back(stoi(argv[i]));
@@ -249,7 +249,6 @@ int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azC
 
 int DataBase::callbackBestScores(void* notUsed, int argc, char** argv, char** azCol)
 {
-	//_userNames.clear();
 	for (int i = 0; i < argc; i++)
 	{
 		_userNames.push_back(argv[i]);

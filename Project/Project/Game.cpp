@@ -2,7 +2,7 @@
 #include "Game.h"
 #include "Protocol.h"
 
-Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo - 1), _db(&db), _currentTurnAnswers(0)
+Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo-1), _db(&db), _currentTurnAnswers(0)
 {
 	////////////	
 	insertGameToDB();

@@ -274,7 +274,7 @@ User* TriviaServer::handleSignin(RecievedMessage* m)
 	if (_db.isUserAndPassMatch(((*(m->getValues()))[0]), ((*(m->getValues()))[1])))
 	{
 		flag = false;
-		login = new User((*(m->getValues()))[0], m->getSock());
+		login = new User(((*(m->getValues()))[0]), m->getSock());
 		for (itConnected = _connectedUsers.begin(); itConnected != _connectedUsers.end(); itConnected++)
 		{
 			if (itConnected->second->getUsername() == login->getUsername())
@@ -492,7 +492,6 @@ void TriviaServer::handleLeaveGame(RecievedMessage* m)
 void TriviaServer::handleStartGame(RecievedMessage* m)
 {
 	Game *g;
-	//DataBase *db = nullptr;
 	try
 	{
 		g = new Game(m->getUser()->getRoom()->getUsers(), m->getUser()->getRoom()->getQuestionsNo(), _db);
@@ -520,6 +519,7 @@ void TriviaServer::handlePlayerAnswer(RecievedMessage* m)
 				if (it->second == m->getUser()->getRoom()) break;
 			}
 			_roomsList.erase(it);
+
 
 			vector<User*> users = r->getUsers();
 			vector<User*>::iterator itU = users.begin();
@@ -560,4 +560,5 @@ void TriviaServer::handleGetPersonalStatus(RecievedMessage* m)
 {
 	vector<string> data = _db.getPersonalStatus(m->getUser()->getUsername());
 	Helper::sendData(m->getSock(), to_string(PERSONAL_STATUS_RESPONSE) + data[0] + data[1] + data[2] + data[3]);
+
 }

@@ -23,14 +23,14 @@ public:
 	int insertNewGame();
 	bool updateGameStatus(int id);
 	bool addAnswerToPlayer(int gameId, string username, int questionId, string answer, bool isCorrect, int answerTime);
+	
 private:
+	void insertQuestions();
 	sqlite3* _db;
 	static int _lastValue;
 	static vector<int> _ids;
 	static string _questionData;
 	static vector<string> _userNames;
-
-	void insertQuestions();
 	static int callbackCount(void* notUsed, int argc, char** argv, char** azCol);
 	static int callbackId(void* notUsed, int argc, char** argv, char** azCol);
 	static int callbackQuestions(void* notUsed, int argc, char** argv, char** azCol);
