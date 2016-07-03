@@ -13,7 +13,6 @@ Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(p
 		(**it).setGame(this);
 		_results.insert(pair<string, int>((**it).getUsername(), 0));
 	}
-	_room = _players[0]->getRoom();
 }
 
 Game::~Game()
@@ -107,7 +106,7 @@ bool Game::leaveGame(User* u)
 
 int Game::getID()
 {
-	return _room->getId();
+	return _players[0]->getRoom()->getId();
 }
 
 bool Game::insertGameToDB()

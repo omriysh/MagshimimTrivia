@@ -20,7 +20,6 @@ class Game{
     DataBase* _db;
     map<string, int> _results;
     int _currentTurnAnswers;
-	Room* _room;
     
     bool insertGameToDB();
     void initQuestionsFromDB();
