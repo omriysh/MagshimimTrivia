@@ -23,7 +23,6 @@ public:
 	int insertNewGame();
 	bool updateGameStatus(int id);
 	bool addAnswerToPlayer(int gameId, string username, int questionId, string answer, bool isCorrect, int answerTime);
-	
 private:
 	void insertQuestions();
 	sqlite3* _db;
