@@ -4,7 +4,6 @@
 
 Game::Game(const vector <User*> & players, int queNo, DataBase& db) : _players(players), _questions_no(queNo-1), _db(&db), _currentTurnAnswers(0)
 {
-	////////////	
 	insertGameToDB();
 	initQuestionsFromDB();
 	vector<User*>::iterator it = _players.begin();
@@ -103,16 +102,16 @@ bool Game::leaveGame(User* u)
 	}
 	return false;
 }
-
 int Game::getID()
 {
-	return _players[0]->getRoom()->getId();
+	return _id;
 }
 
 bool Game::insertGameToDB()
 {
-	return 	_db->insertNewGame();
+	return _id = _db->insertNewGame();
 }
+
 
 void Game::initQuestionsFromDB()
 {

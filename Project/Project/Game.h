@@ -13,25 +13,26 @@ class User;
 class Question;
 class DataBase;
 class Game{
-  private:
-    vector<Question*> _questions;
-    vector<User*> _players;
-    int _questions_no;
-    DataBase* _db;
-    map<string, int> _results;
-    int _currentTurnAnswers;
-    
-    bool insertGameToDB();
-    void initQuestionsFromDB();
-    void sendQuestionToAllUsers();
-  
-  public:
-    Game(const vector <User*> & players, int queNo, DataBase& db);
-    ~Game();
-    void sendFirstQuestion();
-    void handleFinishGame();
-    bool handleNextTurn();
-    bool handleAnswerFromUser(User* user, int answerNo, int time);
-    bool leaveGame(User* u);
-    int getID();
+private:
+	vector<Question*> _questions;
+	vector<User*> _players;
+	int _questions_no;
+	DataBase* _db;
+	map<string, int> _results;
+	int _currentTurnAnswers;
+	int _id;
+
+	bool insertGameToDB();
+	void initQuestionsFromDB();
+	void sendQuestionToAllUsers();
+
+public:
+	Game(const vector <User*> & players, int queNo, DataBase& db);
+	~Game();
+	void sendFirstQuestion();
+	void handleFinishGame();
+	bool handleNextTurn();
+	bool handleAnswerFromUser(User* user, int answerNo, int time);
+	bool leaveGame(User* u);
+	int getID();
 };

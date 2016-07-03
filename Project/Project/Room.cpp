@@ -7,7 +7,7 @@ Room::Room(int id, User* admin, string name, int maxUsers, int questionTime, int
 
 bool Room::joinRoom(User* user)
 {
-	if (_users.size() < (unsigned int)_maxUsers)
+	if (_users.size() < (unsigned int)_maxUsers) //if the room isn't full, add the user and send all required messages to all users
 	{
 		_users.push_back(user);
 		stringstream message;
@@ -20,12 +20,14 @@ bool Room::joinRoom(User* user)
 		}
 		return true;
 	}
+	//if the room is full, do not accept the users
 	user->send(to_string(ROOM_JOIN_ROOM_FULL));
 	return false;
 }
 
 void Room::leaveRoom(User* user)
 {
+	//remove the user from the room and send mesage to all the other users
     _users.erase(remove(_users.begin(), _users.end(), user),_users.end());
 	vector<User*>::iterator it = _users.begin();
 	for (it; it != _users.end(); it++)
@@ -37,6 +39,7 @@ void Room::leaveRoom(User* user)
 
 int Room::closeRoom(User* user)
 {
+	//send message to all users
 	vector<User*>::iterator it = _users.begin();
 	for (it; it != _users.end(); it++)
 	{

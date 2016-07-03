@@ -1,4 +1,5 @@
 #include <sstream>
+#include <numeric>
 #include "DataBase.h"
 
 int DataBase::_lastValue = 0;
@@ -6,30 +7,30 @@ vector<int> DataBase::_ids;
 string DataBase::_questionData = "";
 vector<string> DataBase::_userNames;
 
-DataBase::DataBase() throw(string)
+DataBase::DataBase() throw(exception)
 {
 	int rc = sqlite3_open("TriviaDB.db", &_db);
 	if (rc)
 	{
 		string error = sqlite3_errmsg(_db);
 		sqlite3_close(_db);
-		throw error;
+		throw exception(error.c_str());
 	}
-	else
+	else //create tables if don't exist and generate questions (if there aren't any)
 	{
 		char* zErrMsg = 0;
 		string sheilta = "create table if not exists t_players_answers(game_id integer not null, username text not null, question_id integer not null, player_answer text not null, is_correct integer not null, answer_time integer not null, primary key(game_id, username, question_id));";
 		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		if (rc != SQLITE_OK) throw exception(sqlite3_errmsg(_db));
 		sheilta = "create table if not exists t_users(username text primary key not null, password text not null, email text not null, foreign key(username) references t_players_answers(username));";
 		int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		if (rc != SQLITE_OK) throw exception(sqlite3_errmsg(_db));
 		sheilta = "create table if not exists t_games(game_id integer primary key autoincrement not null, status integer not null, start_time datetime not null, end_time datetime, foreign key(game_id) references t_players_answers(game_id));";
 		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		if (rc != SQLITE_OK) throw exception(sqlite3_errmsg(_db));
 		sheilta = "create table if not exists t_questions(question_id integer primary key autoincrement not null, question text not null, correct_ans text not null, ans2 text not null, ans3 text not null, ans4 text not null, foreign key(question_id) references t_players_answers(question_id));";
 		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-		if (rc != SQLITE_OK) throw sqlite3_errmsg(_db);
+		if (rc != SQLITE_OK) throw exception(sqlite3_errmsg(_db));
 		insertQuestions();
 	}
 }
@@ -70,13 +71,15 @@ bool DataBase::isUserAndPassMatch(string username, string password)
 
 vector<Question*> DataBase::initQuestion(int questionNo)
 {
+	//to select random questions, first select random question ids
 	vector<Question*> ans;
 	char* zErrMsg = 0;
 	string sheilta = "select question_id from t_questions order by random() limit " + to_string(questionNo) + ";";
 	_ids.clear();
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackId, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
-	for (int i = 0; i < _ids.size(); i++)
+	//after getting ids, go over them and create a new question class for each one
+	for (unsigned int i = 0; i < _ids.size(); i++)
 	{
 		sheilta = "select question from t_questions where question_id=" + to_string(_ids[i]) + ";";
 		int rc = sqlite3_exec(_db, sheilta.c_str(), callbackQuestions, 0, &zErrMsg);
@@ -87,7 +90,7 @@ vector<Question*> DataBase::initQuestion(int questionNo)
 		if (rc != SQLITE_OK) return ans;
 		string correctAns = _questionData;
 		vector<string> answers;
-		for (int j = 2; j <= 4; j++)
+		for (int j = 2; j <= 4; j++) //filling the false answers
 		{
 			sheilta = "select ans" + to_string(j) + " from t_questions where question_id=" + to_string(_ids[i]) + ";";
 			int rc = sqlite3_exec(_db, sheilta.c_str(), callbackQuestions, 0, &zErrMsg);
@@ -102,19 +105,22 @@ vector<Question*> DataBase::initQuestion(int questionNo)
 
 vector<string> DataBase::getBestScores()
 {
-	//return 3 scores or empty strings
+	//return 3 strings - score in format or empty string
+	//first get all users
 	vector<string> ans;
 	char* zErrMsg = 0;
 	string sheilta = "select username from t_users;";
 	_userNames.clear();
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackBestScores, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return ans;
+	//get personal status of each user
 	map<string, int> scores;
-	for (int i = 0; i < _userNames.size(); i++)
+	for (unsigned int i = 0; i < _userNames.size(); i++)
 	{
 		vector<string> status = getPersonalStatus(_userNames[i]);
 		scores.insert(pair<string, int>(_userNames[i], stoi(status[1])));
 	}
+	//get the top 3 scores and fill the answers array in order
 	for (int i = 0; i < 3; i++)
 	{
 		map<string, int>::iterator it = scores.begin();
@@ -157,7 +163,11 @@ vector<string> DataBase::getPersonalStatus(string username)
 	if (rc != SQLITE_OK) return ans;
 	ans.push_back(Helper::getPaddedNumber(_lastValue, 6));
 	sheilta = "select answer_time from t_players_answers where username=\"" + username + "\";";
+	//prepare for callback, repurposing _ids as an integer array to get all the answer times
+	_lastValue = 0;
+	_ids.clear();
 	rc = sqlite3_exec(_db, sheilta.c_str(), callbackPersonalStatus, 0, &zErrMsg);
+	_lastValue = accumulate(_ids.begin(), _ids.end(), 0) * 100 / _lastValue; //the final time number is the average time multiplied by 100 to create the right 4-digit format
 	if (rc != SQLITE_OK) return ans;
 	ans.push_back(Helper::getPaddedNumber(_lastValue, 4));
 	return ans;
@@ -168,10 +178,10 @@ int DataBase::insertNewGame()
 	char* zErrMsg = 0;
 	string sheilta = "insert into t_games(status, start_time) valeus(0, \"now\");";
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return -1;
+	if (rc != SQLITE_OK) return 0;
 	sheilta = "select count(*) from t_games;";
 	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return -1;
+	if (rc != SQLITE_OK) return 0;
 	return _lastValue;
 }
 
@@ -195,6 +205,7 @@ bool DataBase::addAnswerToPlayer(int gameId, string username, int questionId, st
 
 void DataBase::insertQuestions()
 {
+	//check if there are questions, and if there are not - add some
 	char* zErrMsg = 0;
 	string sheilta = "select count(*) from t_questions;";
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
@@ -219,6 +230,7 @@ void DataBase::insertQuestions()
 
 int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)
 {
+	//returns answer for count() function
 	_lastValue = 0;
 	for (int i = 0; i < argc; i++)
 	{
@@ -230,6 +242,7 @@ int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)
 
 int DataBase::callbackId(void* notUsed, int argc, char** argv, char** azCol)
 {
+	//fills the _ids array with received values
 	for (int i = 0; i < argc; i++)
 	{
 		_ids.push_back(stoi(argv[i]));
@@ -239,6 +252,7 @@ int DataBase::callbackId(void* notUsed, int argc, char** argv, char** azCol)
 
 int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azCol)
 {
+	//fills string with received string from db
 	_questionData = "";
 	for (int i = 0; i < argc; i++)
 	{
@@ -249,6 +263,7 @@ int DataBase::callbackQuestions(void* notUsed, int argc, char** argv, char** azC
 
 int DataBase::callbackBestScores(void* notUsed, int argc, char** argv, char** azCol)
 {
+	//fills _userNames string array with answers
 	for (int i = 0; i < argc; i++)
 	{
 		_userNames.push_back(argv[i]);
@@ -258,14 +273,14 @@ int DataBase::callbackBestScores(void* notUsed, int argc, char** argv, char** az
 
 int DataBase::callbackPersonalStatus(void* notUsed, int argc, char** argv, char** azCol)
 {
-	_lastValue = 0;
-	float sum = 0;
+	//callback to fill _ids with time values and count how many there are
+	int temp;
 	for (int i = 0; i < argc; i++)
 	{
 		stringstream ss(argv[i]);
-		ss >> sum;
+		ss >> temp;
+		_ids.push_back(temp);
 	}
-	sum /= argc;
-	_lastValue = (int)sum * 100 + sum - (int)sum;
+	_lastValue++;
 	return 0;
 }
