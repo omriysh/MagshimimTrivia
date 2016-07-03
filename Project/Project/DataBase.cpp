@@ -211,21 +211,63 @@ void DataBase::insertQuestions()
 	int rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
 	if (rc != SQLITE_OK) return;
 	if (_lastValue) return;
-	sheilta = "insert into t_questions(question, correct_ans, ans2, ans3, ans4) values(\"q1\", \"a1\", \"a2\", \"a3\", \"a4\");";
-	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return;
-	sheilta = "insert into t_questions(question, correct_ans, ans2, ans3, ans4) values(\"q2\", \"a1\", \"a2\", \"a3\", \"a4\");";
-	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return;
-	sheilta = "insert into t_questions(question, correct_ans, ans2, ans3, ans4) values(\"q3\", \"a1\", \"a2\", \"a3\", \"a4\");";
-	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return;
-	sheilta = "insert into t_questions(question, correct_ans, ans2, ans3, ans4) values(\"q4\", \"a1\", \"a2\", \"a3\", \"a4\");";
-	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return;
-	sheilta = "insert into t_questions(question, correct_ans, ans2, ans3, ans4) values(\"q5\", \"a1\", \"a2\", \"a3\", \"a4\");";
-	rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
-	if (rc != SQLITE_OK) return;
+
+	string questions[] = { "Who is getting 100?",
+						   "How much would you grade this project?",
+						   "If this project does not receive a grade of 100, what would you do?",
+						   "What is the best project in class?",
+						   "If they were to work seperatly, who would get 100, Omer or Omri?",
+						   "Will this project receive an A or 100?",
+						   "In the global leaderboard of total awesomeness, who is number 1?",
+						   "Is hypnosis real?",
+						   "Is this the best project you have ever seen or what?",
+						   "What will Google Trivia be based on?" };
+	string correctAns[] = { "Omer and Omri",
+							"100",
+							"I would protest. It's an incredible project that definitely deserves 100",
+							"This one is the best project in every class",
+							"Both",
+							"Neither - it's off the chart!",
+							"This project",
+							"No... Why am I even checking this project when I can just give it 100?",
+							"It sure is",
+							"This project" };
+	string ans2[] = { "Some random project",
+					  "0. It's terrible",
+					  "Nothing",
+					  "Trick question. In what class?",
+					  "Neither. They are both terrible",
+					  "Depends on where you are in the world",
+					  "Omer Adam",
+					  "Sure, Harry",
+					  "What",
+					  "Stop making stuff up" };
+	string ans3[] = { "Who cares",
+					  "99.9",
+					  "I would have written a song about it",
+					  "Every project but this one",
+					  "Omer. He is the best",
+					  "Oh, I'm on to you. Their grade will be an F! Or is it a 0?...",
+					  "Jesus",
+					  "Bak, bak bak bak bak",
+					  "Nah, I've seen better",
+					  "The simpsons" };
+	string ans4[] = { "No one gets 100 if it's up to me!",
+					  "I don't like grades",
+					  "Call the police for inapropriate grading",
+					  "There are not best projects. Everyone is a winner!",
+					  "Omri. He is superior in every way",
+					  "A+, not A, you idiot",
+					  "There is no such leaderboard",
+					  "No unless you're a voodoo master",
+					  "What project?",
+					  "Um... Google search results, like dah" };
+	for (int i = 0; i < 10; i++)
+	{
+		sheilta = "insert into t_questions(question, correct_ans, ans2, ans3, ans4) values(\"" + questions[i] + "\", \"" + correctAns[i] + "\", \"" + ans2[i] + "\", \"" + ans3[i] + "\", \"" + ans4[i] + "\");";
+		rc = sqlite3_exec(_db, sheilta.c_str(), callbackCount, 0, &zErrMsg);
+		if (rc != SQLITE_OK) return;
+	}
 }
 
 int DataBase::callbackCount(void* notUsed, int argc, char** argv, char** azCol)

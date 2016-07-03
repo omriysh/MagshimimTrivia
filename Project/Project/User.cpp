@@ -50,6 +50,7 @@ void User::clearRoom()
 
 bool User::createRoom(int id, User* _admin, string name,int maxUsers, int questionTime, int questionNo)
 {
+	/*if no room create one*/
     if (_currRoom != nullptr)
     {
         send("1141");
@@ -66,6 +67,7 @@ bool User::createRoom(int id, User* _admin, string name,int maxUsers, int questi
 
 bool User::joinRoom(Room* room)
 {
+	/*if no room try to join*/
 	if (_currRoom == nullptr)
 	{
 		_currRoom = room;
@@ -83,6 +85,7 @@ void User::leaveRoom()
 
 int User::closeRoom()
 {
+	/*close the room */
     if (!_currRoom) return -1;
     _currRoom->Room::closeRoom(this);
     int roomNum = _currRoom->getId();
