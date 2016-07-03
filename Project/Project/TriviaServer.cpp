@@ -12,6 +12,7 @@ int TriviaServer::_roomIdSequence;
 
 TriviaServer::TriviaServer() throw(exception)
 {
+	/*open socket for the server*/
 	_roomIdSequence = 0;
 	_socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (_socket == INVALID_SOCKET)
@@ -23,11 +24,13 @@ TriviaServer::~TriviaServer()
 	RecievedMessage* m=nullptr;
 	User *u;
 	SOCKET s;
+	/*delete all rooms*/
 	map<int, Room*>::iterator it = _roomsList.begin();
 	for (it; it != _roomsList.end(); it++)
 	{
 		delete it->second;
 	}
+	/*delete all users*/
 	map<SOCKET, User*>::iterator it2 = _connectedUsers.begin();
 	for (it2; it2 != _connectedUsers.end(); it2++)
 	{
@@ -37,22 +40,26 @@ TriviaServer::~TriviaServer()
 		m->setUser(u);
 		handleSignout(m);
 		delete u;
+		/*close the user's socket*/
 		if (s)
 		{
 			closesocket(s);
 		}
 		delete m;
 	}
+	/*close the server socket*/
 	closesocket(_socket);
 }
 
 void TriviaServer::server()
 {
+	/*listen to clients and create the thread that handle recieved messages*/
 	bindAndListen();
 	thread handleMessages(&TriviaServer::handleRecievedMessages,this);
 	handleMessages.detach();
 	while (true)
 	{
+		/*wait for client*/
 		cout << "accepting client..." << endl;
 		accept();
 	}
@@ -60,6 +67,7 @@ void TriviaServer::server()
 
 void TriviaServer::bindAndListen() throw(exception)
 {
+	/*bind*/
 	struct sockaddr_in sa = { 0 };
 	sa.sin_port = htons(PORT);
 	sa.sin_family = AF_INET;
@@ -68,6 +76,7 @@ void TriviaServer::bindAndListen() throw(exception)
 		throw std::exception(__FUNCTION__ " - bind");
 	cout << "binded" << endl;
 
+	/*listen*/
 	if (::listen(_socket, SOMAXCONN) == SOCKET_ERROR)
 		throw std::exception(__FUNCTION__ " - listen");
 	cout << "listening..." << endl;
@@ -75,6 +84,7 @@ void TriviaServer::bindAndListen() throw(exception)
 
 void TriviaServer::accept() throw(exception)
 {
+	/*wait for client to connect*/
 	SOCKET client_socket = ::accept(_socket, NULL, NULL);
 	if (client_socket == INVALID_SOCKET)
 		throw std::exception(__FUNCTION__);
@@ -88,6 +98,7 @@ void TriviaServer::accept() throw(exception)
 void TriviaServer::clientHandler(SOCKET s)
 {
 	bool clientConnected = true;
+	/*while the client is connected, get messages codes and build messages*/
 	while (clientConnected)
 	{
 		try
@@ -98,6 +109,7 @@ void TriviaServer::clientHandler(SOCKET s)
 		}
 		catch (...)
 		{
+			/*if something failed (client disconnected or exited) - abort*/
 			RecievedMessage* m = buildRecieveMessage(s, EXIT_APPLICATION);
 			addRecievedMessage(m);
 			clientConnected = false;
@@ -109,6 +121,7 @@ void TriviaServer::safeDeleteUser(RecievedMessage* m)
 {
 	try
 	{
+		/*signout and close socket*/
 		SOCKET soc = m->getSock();
 		handleSignout(m);
 		if (soc != NULL)
@@ -122,8 +135,10 @@ void TriviaServer::safeDeleteUser(RecievedMessage* m)
 
 void TriviaServer::addRecievedMessage(RecievedMessage* m)
 {
+	/*lock the que of messages*/
 	std::unique_lock<std::mutex> locker(_mtxRecievedMessages);
 	locker.try_lock();
+	/*just for beauty :P*/
 	cout << "RECIEVING:: " << m->getMessageCode();
 	for (vector<string>::iterator it = m->getValues()->begin(); it != m->getValues()->end(); it++)
 	{
@@ -133,6 +148,7 @@ void TriviaServer::addRecievedMessage(RecievedMessage* m)
 	cout << endl;
 	_queRcvMessages.push(m);	
 	locker.unlock();
+	/*unlock and notify the handle function*/
 	_cond.notify_all();
 	
 }
@@ -141,6 +157,7 @@ RecievedMessage* TriviaServer::buildRecieveMessage(SOCKET s, int code)
 {
 	vector<string> values;
 	int len;
+	/*get the values for each different messages*/
 	switch (code)
 	{
 	case SIGN_IN_REQUEST:
@@ -188,6 +205,7 @@ RecievedMessage* TriviaServer::buildRecieveMessage(SOCKET s, int code)
 		break;
 	}
 
+	/*build the messages*/
 	RecievedMessage* m;
 	if (!values.empty())
 	{
@@ -208,8 +226,10 @@ void TriviaServer::handleRecievedMessages()
 	{
 		if (_queRcvMessages.empty())
 		{
+			/*wait to be notified*/
 			_cond.wait(locker);
 		}
+		/*choose what function to use for the message*/
 		switch (_queRcvMessages.front()->getMessageCode())
 		{
 		case SIGN_IN_REQUEST:
@@ -258,7 +278,7 @@ void TriviaServer::handleRecievedMessages()
 			handleGetPersonalStatus(_queRcvMessages.front());
 			break;
 		}
-
+		/*delete the message*/
 		delete _queRcvMessages.front();
 		_queRcvMessages.pop();
 	}
@@ -270,9 +290,10 @@ User* TriviaServer::handleSignin(RecievedMessage* m)
 	map<string, string>::iterator it;
 	map<SOCKET,User*>::iterator itConnected;
 	User* login = nullptr;
-
+	/*search in dataBase if the user exist and the password*/
 	if (_db.isUserAndPassMatch(((*(m->getValues()))[0]), ((*(m->getValues()))[1])))
 	{
+		/*if does, see if connected*/
 		flag = false;
 		login = new User(((*(m->getValues()))[0]), m->getSock());
 		for (itConnected = _connectedUsers.begin(); itConnected != _connectedUsers.end(); itConnected++)
@@ -285,16 +306,19 @@ User* TriviaServer::handleSignin(RecievedMessage* m)
 		}
 	}
 
+	/*connect!*/
 	if (login)
 	{
 		Helper::sendData(m->getSock(), to_string(SIGN_IN_SUCCESS));
 		_connectedUsers[m->getSock()] = login;
 	}
+	/*wrong details*/
 	else if (flag)
 	{
 		Helper::sendData(m->getSock(), to_string(SIGN_IN_WRONG_DETAILS));
 
 	}
+	/*connected already*/
 	else
 	{
 		Helper::sendData(m->getSock(), to_string(SIGN_IN_USER_CONNECTED));
@@ -308,35 +332,25 @@ bool TriviaServer::handleSignup(RecievedMessage* m)
 	string user = (*m->getValues())[0];
 	string pass = (*m->getValues())[1];
 	string email = (*m->getValues())[2];
-
+	/*see if password is in the format*/
 	if (!Validator::isPasswordValid(pass))
 	{
 		Helper::sendData(m->getSock(), to_string(SIGN_UP_PASS_ILLEGAL));
 		return false;
 	}
+	/*see if user is in format*/
 	if (!Validator::isUsernameValid(user))
 	{
 		Helper::sendData(m->getSock(), to_string(SIGN_UP_USERNAME_ILLEGAL));
 		return false;
 	}
-	//////////////////// TEMP CODE
-	/*map<string, string>::iterator it = _dbUsers.begin();
-	for (it; it != _dbUsers.end(); it++)
-	{
-		if (user == it->first)
-		{
-			Helper::sendData(m->getSock(), to_string(SIGN_UP_USERNAME_EXISTS));
-			return false;
-		}
-	}
-	_dbUsers.insert(pair<string, string>(user, pass));*/
-	//////////////////// END TEMP CODE
-	//////////////////// FUTURE CODE:
+	/*search if already exsisted user in dataBase*/
 	if (_db.isUserExists(user))
 	{
 	Helper::sendData(m->getSock(), to_string(SIGN_UP_USERNAME_EXISTS));
 	return false;
 	}
+	/*if not, add new user*/
 	if(!_db.addNewUser(user, pass, email))
 	{
 	Helper::sendData(m->getSock(), to_string(SIGN_UP_OTHER));
@@ -354,7 +368,7 @@ void TriviaServer::handleSignout(RecievedMessage* m)
 	{
 		handleCloseRoom(m);
 		handleLeaveRoom(m);
-		//handleLeaveGame(m);
+		handleLeaveGame(m);
 		map<SOCKET, User*>::iterator it = _connectedUsers.begin();
 		for (it; it != _connectedUsers.end(); it++)
 		{
@@ -481,12 +495,13 @@ void TriviaServer::handleGetUsersInRoom(RecievedMessage* m)
 
 void TriviaServer::handleLeaveGame(RecievedMessage* m)
 {
+	Room *r = m->getUser()->getRoom();
 	Game* g = m->getUser()->getGame();
-	if (!m->getUser()->leaveGame())
-	{
-		delete g;
-	}
-	Helper::sendData(m->getSock(),to_string(GAME_LEAVE));
+
+	m->getUser()->leaveGame();
+	m->getUser()->leaveRoom();
+	m->getUser()->setGame(nullptr);
+	m->getUser()->setRoom(nullptr);
 }
 
 void TriviaServer::handleStartGame(RecievedMessage* m)

@@ -95,6 +95,7 @@ bool User::leaveGame()
 {
 	Game* g = _currGame;
     if (!_currGame) return false;
-    _currGame = nullptr;
-	return g->leaveGame(this);
+	bool ret = g->leaveGame(this);
+	_currGame = nullptr;
+	return ret;
 }
